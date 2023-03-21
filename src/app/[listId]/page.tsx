@@ -1,8 +1,10 @@
-import { Todos } from '@/components/Todos';
+import { Todo, Todos } from '@/components/Todos';
+import { client } from '@/lib/client';
+import { gql } from 'graphql-request';
 
 type MyListPageMetadata = {
   params: { listId: string };
-}
+};
 
 export async function generateMetadata({ params }: MyListPageMetadata) {
   return {
@@ -12,32 +14,26 @@ export async function generateMetadata({ params }: MyListPageMetadata) {
 
 type MyListPageProps = MyListPageMetadata;
 
+const GET_TODOS = gql`
+  query GetTODOs($listId: Int!) {
+    getTODOs(listId: $listId) {
+      desc
+      finished
+      id
+    }
+  }
+`;
 
-
-export default async function MyListPage({ params: { listId } }: MyListPageProps) {
-  // TODO fetch list from server
-
+export default async function MyListPage({
+  params: { listId },
+}: MyListPageProps) {
+  const res = await client.request<{ getTODOs: Todo[] }>(GET_TODOS, {
+    listId: Number(listId),
+  });
 
   return (
     <div className="flex align-center justify-center p-16 sm:p-8">
-      <Todos
-        listId={parseInt(listId)}
-        // TODO swap with real data from query and
-        // make sure to make the query from the server
-        list={[
-          { id: 1, desc: 'Study hard', finished: true },
-          {
-            id: 2,
-            desc: 'Clean house',
-            finished: false,
-          },
-          {
-            id: 3,
-            desc: 'Clean house',
-            finished: false,
-          },
-        ]}
-      />
+      <Todos listId={parseInt(listId)} list={res.getTODOs} />
     </div>
   );
 }
