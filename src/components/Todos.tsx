@@ -28,6 +28,12 @@ const ADD_TODO = gql`
   }
 `;
 
+const REMOVE_TODO = gql`
+  mutation RemoveTODO($removeTodoId: Int!, $listId: Int!) {
+    removeTODO(id: $removeTodoId, listId: $listId)
+  }
+`;
+
 export const Todos = ({ list = [], listId }: TodosProps) => {
   const [todos, setTodos] = useState<Todo[]>(list);
 
@@ -39,8 +45,12 @@ export const Todos = ({ list = [], listId }: TodosProps) => {
     setTodos([...todos, res.addTODO]);
   };
 
-  const onRemoveHandler = (id: number) => {
-    console.log(`Remove todo ${id}`);
+  const onRemoveHandler = async (removeTodoId: number) => {
+    await client.request<{ result: boolean }>(REMOVE_TODO, {
+      listId,
+      removeTodoId,
+    });
+    setTodos(todos.filter((todo) => todo.id !== removeTodoId));
   };
 
   const onFinishHandler = (id: number) => {
