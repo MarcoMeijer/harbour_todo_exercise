@@ -1,9 +1,11 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { Heart } from '@/components/icons/Heart';
 import { Close } from '@/components/icons/Close';
 import { AddTodo } from '@/components/AddTodo';
+import { gql } from 'graphql-request';
+import { client } from '@/lib/client';
 
 export type Todo = {
   id: number;
@@ -16,11 +18,25 @@ type TodosProps = {
   list: Todo[];
 };
 
+const ADD_TODO = gql`
+  mutation AddTODO($addTodoListId: Int!, $desc: String!) {
+    addTODO(listId: $addTodoListId, desc: $desc) {
+      todo_list_id
+      desc
+      id
+    }
+  }
+`;
+
 export const Todos = ({ list = [], listId }: TodosProps) => {
   const [todos, setTodos] = useState<Todo[]>(list);
 
-  const onAddHandler = (desc: string) => {
-    console.log(`Add todo ${desc}`);
+  const onAddHandler = async (desc: string) => {
+    const res = await client.request<{ addTODO: Todo }>(ADD_TODO, {
+      addTodoListId: listId,
+      desc,
+    });
+    setTodos([...todos, res.addTODO]);
   };
 
   const onRemoveHandler = (id: number) => {
