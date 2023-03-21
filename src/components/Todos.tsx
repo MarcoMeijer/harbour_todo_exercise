@@ -34,6 +34,16 @@ const REMOVE_TODO = gql`
   }
 `;
 
+const FINISH_TODO = gql`
+  mutation FinishTODO($finishTodoId: Int!, $listId: Int!) {
+    finishTODO(id: $finishTodoId, listId: $listId) {
+      desc
+      id
+      finished
+    }
+  }
+`;
+
 export const Todos = ({ list = [], listId }: TodosProps) => {
   const [todos, setTodos] = useState<Todo[]>(list);
 
@@ -46,15 +56,21 @@ export const Todos = ({ list = [], listId }: TodosProps) => {
   };
 
   const onRemoveHandler = async (removeTodoId: number) => {
-    await client.request<{ result: boolean }>(REMOVE_TODO, {
+    await client.request<boolean>(REMOVE_TODO, {
       listId,
       removeTodoId,
     });
     setTodos(todos.filter((todo) => todo.id !== removeTodoId));
   };
 
-  const onFinishHandler = (id: number) => {
-    console.log(`Mark todo ${id} as finished`);
+  const onFinishHandler = async (finishTodoId: number) => {
+    const res = await client.request<{ finishTODO: Todo }>(FINISH_TODO, {
+      listId,
+      finishTodoId,
+    });
+    setTodos(
+      todos.map((todo) => (todo.id === finishTodoId ? res.finishTODO : todo)),
+    );
   };
 
   return (
