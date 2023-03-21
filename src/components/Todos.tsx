@@ -103,7 +103,26 @@ export const Todos = ({ list = [], listId }: TodosProps) => {
         {todos.map((item, i) => (
           <li
             key={item.id}
-            className="py-2 pl-4 pr-2 bg-gray-900 rounded-lg mb-4 flex justify-between items-center min-h-16"
+            className={`py-2 pl-4 pr-2 bg-gray-900 rounded-lg mb-4 flex justify-between items-center min-h-16
+            ${i === dragBegin && dragBegin !== dragEnd ? 'opacity-0' : ''}
+            ${dragBegin !== null && 'transition-all'}
+            ${
+              dragBegin !== null &&
+              dragEnd !== null &&
+              dragBegin < i &&
+              i <= dragEnd
+                ? '-translate-y-20'
+                : ''
+            }
+            ${
+              dragBegin !== null &&
+              dragEnd !== null &&
+              dragEnd <= i &&
+              i < dragBegin
+                ? 'translate-y-20'
+                : ''
+            }
+            `}
             draggable={true}
             onDragStart={() => onDragStart(i)}
             onDragEnd={() => onDragEnd()}
