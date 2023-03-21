@@ -6,6 +6,7 @@ import { Close } from '@/components/icons/Close';
 import { AddTodo } from '@/components/AddTodo';
 import { gql } from 'graphql-request';
 import { client } from '@/lib/client';
+import dragList from '@/utils/dragList';
 
 export type Todo = {
   id: number;
@@ -46,6 +47,8 @@ const FINISH_TODO = gql`
 
 export const Todos = ({ list = [], listId }: TodosProps) => {
   const [todos, setTodos] = useState<Todo[]>(list);
+  const [dragBegin, setDragBegin] = useState<number | null>(null);
+  const [dragEnd, setDragEnd] = useState<number | null>(null);
 
   const onAddHandler = async (desc: string) => {
     const res = await client.request<{ addTODO: Todo }>(ADD_TODO, {
@@ -73,16 +76,42 @@ export const Todos = ({ list = [], listId }: TodosProps) => {
     );
   };
 
+  const onDragStart = (index: number) => {
+    setDragBegin(index);
+    setDragEnd(index);
+  };
+
+  const onDragEnd = async () => {
+    if (dragBegin === null || dragEnd === null) {
+      return;
+    }
+
+    setTodos(dragList(todos, dragBegin, dragEnd));
+
+    setDragBegin(null);
+    setDragEnd(null);
+  };
+
+  const onDragEnter = (index: number) => {
+    setDragEnd(index);
+  };
+
   return (
     <div>
       <h2 className="text-center text-5xl mb-10">My TODO list</h2>
       <ul>
-        {todos.map((item) => (
+        {todos.map((item, i) => (
           <li
             key={item.id}
             className="py-2 pl-4 pr-2 bg-gray-900 rounded-lg mb-4 flex justify-between items-center min-h-16"
+            draggable={true}
+            onDragStart={() => onDragStart(i)}
+            onDragEnd={() => onDragEnd()}
+            onDragEnter={() => onDragEnter(i)}
           >
-            <p className={item.finished ? 'line-through' : ''}>{item.desc}</p>
+            <p className={item.finished ? 'line-through' : 'text-white'}>
+              {item.desc}
+            </p>
             {!item.finished && (
               <div className="flex gap-2">
                 <button
